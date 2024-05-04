@@ -32,7 +32,7 @@ static lv_display_t * hal_init(int32_t w, int32_t h);
  *  STATIC VARIABLES
  **********************/
 
-/********************** 
+/**********************
  *      MACROS
  **********************/
 
@@ -51,10 +51,16 @@ static lv_display_t * hal_init(int32_t w, int32_t h);
 /**********************
  *      VARIABLES
  **********************/
+lv_obj_t * scr1;
+lv_obj_t * scr2;
 
 /**********************
  *  STATIC PROTOTYPES
  **********************/
+static void btn_event_cb(lv_event_t * e);
+static void btn_event_cb2(lv_event_t * e);
+static void new_screen();
+static void new_screen1();
 
 /**********************
  *   GLOBAL FUNCTIONS
@@ -69,9 +75,25 @@ int main(int argc, char **argv)
   lv_init();
 
   /*Initialize the HAL (display, input devices, tick) for LVGL*/
-  hal_init(480, 272);
+  lv_display_t * disp = hal_init(480, 272);
 
-  lv_demo_widgets();
+  new_screen();
+
+  // lv_demo_widgets();
+
+  /*lv_obj_t * label = lv_label_create(lv_screen_active());
+  lv_label_set_text(label, "Home Screen");
+  lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0x000000), LV_PART_MAIN);
+  lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
+
+  lv_obj_t * btn = lv_button_create(lv_screen_active());
+  lv_obj_align(btn, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_set_size(btn, 120, 50);
+  lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);
+
+  lv_obj_t * btn_label = lv_label_create(btn);
+  lv_label_set_text(btn_label, "Next Screen");
+  lv_obj_center(btn_label);*/
 
   while(1) {
     /* Periodically call the lv_task handler.
@@ -98,6 +120,9 @@ static lv_display_t * hal_init(int32_t w, int32_t h)
 
   lv_display_t * disp = lv_sdl_window_create(w, h);
 
+  scr1 = lv_obj_create(NULL);
+  lv_screen_load(scr1);
+
   lv_indev_t * mouse = lv_sdl_mouse_create();
   lv_indev_set_group(mouse, lv_group_get_default());
   lv_indev_set_display(mouse, disp);
@@ -118,4 +143,70 @@ static lv_display_t * hal_init(int32_t w, int32_t h)
   lv_indev_set_group(kb, lv_group_get_default());
 
   return disp;
+}
+
+static void btn_event_cb(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * btn = lv_event_get_target(e);
+  lv_display_t * disp1 = lv_obj_get_display(btn);
+  if (code == LV_EVENT_CLICKED){
+    lv_obj_clean(scr1);
+    new_screen1();
+  }
+  return;
+}
+
+static void btn_event_cb2(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * btn = lv_event_get_target(e);
+  lv_display_t * disp1 = lv_obj_get_display(btn);
+  if (code == LV_EVENT_CLICKED){
+    lv_obj_clean(scr2);
+    new_screen();
+  }
+  return;
+}
+
+static void new_screen(void)
+{
+  lv_screen_load(scr1);
+  lv_obj_t * label = lv_label_create(lv_screen_active());
+  lv_label_set_text(label, "Home Screen");
+  lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0x000000), LV_PART_MAIN);
+  lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
+
+  lv_obj_t * btn = lv_button_create(lv_screen_active());
+  lv_obj_align(btn, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_set_size(btn, 120, 50);
+  lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);
+
+  lv_obj_t * btn_label = lv_label_create(btn);
+  lv_label_set_text(btn_label, "Next Screen");
+  lv_obj_center(btn_label);
+
+  return;
+}
+
+static void new_screen1(void)
+{
+  scr2 = lv_obj_create(NULL);
+  lv_screen_load(scr2);
+
+  lv_obj_t * label = lv_label_create(lv_screen_active());
+  lv_label_set_text(label, "New Screen");
+  lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0x000000), LV_PART_MAIN);
+  lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
+
+  lv_obj_t * btn = lv_button_create(lv_screen_active());
+  lv_obj_align(btn, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_set_size(btn, 120, 50);
+  lv_obj_add_event_cb(btn, btn_event_cb2, LV_EVENT_ALL, NULL);
+
+  lv_obj_t * btn_label = lv_label_create(btn);
+  lv_label_set_text(btn_label, "Previous Screen");
+  lv_obj_center(btn_label);
+
+  return;
 }
