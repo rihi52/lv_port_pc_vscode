@@ -59,8 +59,9 @@ lv_obj_t * scr2;
  **********************/
 static void btn_event_cb(lv_event_t * e);
 static void btn_event_cb2(lv_event_t * e);
-static void new_screen();
-static void new_screen1();
+static void main_screen();
+static void second_screen();
+static void textarea_event_handler(lv_event_t * e);
 
 /**********************
  *   GLOBAL FUNCTIONS
@@ -77,7 +78,7 @@ int main(int argc, char **argv)
   /*Initialize the HAL (display, input devices, tick) for LVGL*/
   lv_display_t * disp = hal_init(480, 272);
 
-  new_screen();
+  main_screen();
 
   // lv_demo_widgets();
 
@@ -152,7 +153,7 @@ static void btn_event_cb(lv_event_t * e)
   lv_display_t * disp1 = lv_obj_get_display(btn);
   if (code == LV_EVENT_CLICKED){
     lv_obj_clean(scr1);
-    new_screen1();
+    second_screen();
   }
   return;
 }
@@ -164,12 +165,23 @@ static void btn_event_cb2(lv_event_t * e)
   lv_display_t * disp1 = lv_obj_get_display(btn);
   if (code == LV_EVENT_CLICKED){
     lv_obj_clean(scr2);
-    new_screen();
+    main_screen();
   }
   return;
 }
 
-static void new_screen(void)
+static void textarea_event_handler(lv_event_t * e)
+{
+    lv_obj_t * ta = lv_event_get_user_data(e);
+    lv_event_code_t code = lv_event_get_code(e);
+    /*if (code == LV_KEY_ENTER){
+      char *user_text = ta;
+      LV_LOG_USER("Enter was pressed. The current text is: %s", lv_textarea_get_text(ta));
+    }*/
+    LV_LOG_USER("Enter was pressed. The current text is: %s", lv_textarea_get_text(ta));
+}
+
+static void main_screen(void)
 {
   lv_screen_load(scr1);
   lv_obj_t * label = lv_label_create(lv_screen_active());
@@ -178,18 +190,23 @@ static void new_screen(void)
   lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
 
   lv_obj_t * btn = lv_button_create(lv_screen_active());
-  lv_obj_align(btn, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_size(btn, 120, 50);
+  lv_obj_align(btn, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+  lv_obj_set_size(btn, 25, 25);
   lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);
 
   lv_obj_t * btn_label = lv_label_create(btn);
-  lv_label_set_text(btn_label, "Next Screen");
+  lv_label_set_text(btn_label, ">");
   lv_obj_center(btn_label);
+
+  lv_obj_t * ta = lv_textarea_create(lv_screen_active());
+  lv_obj_align(ta, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_add_event_cb(ta, textarea_event_handler, LV_EVENT_READY, ta);
+  lv_obj_add_state(ta, LV_STATE_FOCUSED); /*To be sure the cursor is visible*/
 
   return;
 }
 
-static void new_screen1(void)
+static void second_screen(void)
 {
   scr2 = lv_obj_create(NULL);
   lv_screen_load(scr2);
@@ -200,12 +217,12 @@ static void new_screen1(void)
   lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
 
   lv_obj_t * btn = lv_button_create(lv_screen_active());
-  lv_obj_align(btn, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_size(btn, 120, 50);
+  lv_obj_align(btn, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+  lv_obj_set_size(btn, 25, 25);
   lv_obj_add_event_cb(btn, btn_event_cb2, LV_EVENT_ALL, NULL);
 
   lv_obj_t * btn_label = lv_label_create(btn);
-  lv_label_set_text(btn_label, "Previous Screen");
+  lv_label_set_text(btn_label, "<");
   lv_obj_center(btn_label);
 
   return;
