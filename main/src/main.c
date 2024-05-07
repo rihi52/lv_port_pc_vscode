@@ -53,15 +53,20 @@ static lv_display_t * hal_init(int32_t w, int32_t h);
  **********************/
 lv_obj_t * scr1;
 lv_obj_t * scr2;
+static lv_obj_t * ta;
+static lv_obj_t * ta2;
+static char *text = "Hello";
 
 /**********************
  *  STATIC PROTOTYPES
  **********************/
 static void btn_event_cb(lv_event_t * e);
+static void btn_event_cb1(lv_event_t * e);
 static void btn_event_cb2(lv_event_t * e);
 static void main_screen();
 static void second_screen();
 static void textarea_event_handler(lv_event_t * e);
+static void textarea_event_handler1(lv_event_t * e);
 
 /**********************
  *   GLOBAL FUNCTIONS
@@ -146,6 +151,8 @@ static lv_display_t * hal_init(int32_t w, int32_t h)
   return disp;
 }
 
+/**** START MOVE TO AND FROM VS CODE PROJECT ****/
+
 static void btn_event_cb(lv_event_t * e)
 {
   lv_event_code_t code = lv_event_get_code(e);
@@ -156,6 +163,16 @@ static void btn_event_cb(lv_event_t * e)
     second_screen();
   }
   return;
+}
+
+static void btn_event_cb1(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  if (code == LV_EVENT_CLICKED){
+    //text = lv_textarea_get_text(ta);
+    lv_strcpy(text, lv_textarea_get_text(ta));
+    lv_textarea_add_text(ta2, text);
+  }
 }
 
 static void btn_event_cb2(lv_event_t * e)
@@ -172,13 +189,21 @@ static void btn_event_cb2(lv_event_t * e)
 
 static void textarea_event_handler(lv_event_t * e)
 {
-    lv_obj_t * ta = lv_event_get_user_data(e);
+    lv_obj_t * ta1 = lv_event_get_user_data(e);
     lv_event_code_t code = lv_event_get_code(e);
-    /*if (code == LV_KEY_ENTER){
-      char *user_text = ta;
+    if (code == LV_EVENT_READY){
+      lv_strcpy(text, lv_textarea_get_text(ta));
+      lv_textarea_add_text(ta2, text);
       LV_LOG_USER("Enter was pressed. The current text is: %s", lv_textarea_get_text(ta));
-    }*/
+    }
     LV_LOG_USER("Enter was pressed. The current text is: %s", lv_textarea_get_text(ta));
+}
+
+static void textarea_event_handler1(lv_event_t * e)
+{
+    //lv_obj_t * ta1 = lv_event_get_user_data(e);
+    //lv_event_code_t code = lv_event_get_code(e);
+    //LV_LOG_USER("Enter was pressed. The current text is: %s", lv_textarea_get_text(ta));
 }
 
 static void main_screen(void)
@@ -194,14 +219,29 @@ static void main_screen(void)
   lv_obj_set_size(btn, 25, 25);
   lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);
 
+  lv_obj_t * btn1 = lv_button_create(lv_screen_active());
+  lv_obj_align(btn1, LV_ALIGN_CENTER, 0, 50);
+  lv_obj_set_size(btn1, 50, 25);
+  //lv_obj_add_event_cb(btn1, btn_event_cb1, LV_EVENT_ALL, NULL);
+
   lv_obj_t * btn_label = lv_label_create(btn);
   lv_label_set_text(btn_label, ">");
   lv_obj_center(btn_label);
+  lv_obj_t * btn_label1 = lv_label_create(btn1);
+  lv_label_set_text(btn_label1, "Enter");
+  lv_obj_center(btn_label1);
 
-  lv_obj_t * ta = lv_textarea_create(lv_screen_active());
+  ta = lv_textarea_create(lv_screen_active());
   lv_obj_align(ta, LV_ALIGN_CENTER, 0, 0);
+  lv_textarea_set_one_line(ta, true);
+  lv_textarea_set_placeholder_text(ta, "Placeholder text");
+  // lv_textarea_add_text(ta, text);
   lv_obj_add_event_cb(ta, textarea_event_handler, LV_EVENT_READY, ta);
   lv_obj_add_state(ta, LV_STATE_FOCUSED); /*To be sure the cursor is visible*/
+
+  ta2 = lv_textarea_create(lv_screen_active());
+  lv_obj_align(ta2, LV_ALIGN_CENTER, 0, -100);
+  lv_textarea_set_one_line(ta2, true);
 
   return;
 }
@@ -225,5 +265,15 @@ static void second_screen(void)
   lv_label_set_text(btn_label, "<");
   lv_obj_center(btn_label);
 
+  lv_obj_t * ta1 = lv_textarea_create(lv_screen_active());
+  lv_obj_align(ta1, LV_ALIGN_CENTER, 0, 0);
+  lv_textarea_set_one_line(ta1, true);
+  //lv_textarea_set_placeholder_text(ta1, "Placeholder text");
+  lv_textarea_add_text(ta1, text);
+  lv_obj_add_event_cb(ta1, textarea_event_handler1, LV_EVENT_READY, ta1);
+  lv_obj_add_state(ta1, LV_STATE_FOCUSED); /*To be sure the cursor is visible*/
+
   return;
 }
+
+/**** END MOVE TO AND FROM VS CODE PROJECT ****/
