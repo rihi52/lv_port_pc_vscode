@@ -9,6 +9,7 @@
  *********************/
 #define _DEFAULT_SOURCE /* needed for usleep() */
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <pthread.h>
 #include "lvgl/lvgl.h"
@@ -51,22 +52,34 @@ static lv_display_t * hal_init(int32_t w, int32_t h);
 /**********************
  *      VARIABLES
  **********************/
-lv_obj_t * scr1;
-lv_obj_t * scr2;
-static lv_obj_t * ta;
-static lv_obj_t * ta2;
+int monitor_hor_res = 800, monitor_ver_res = 480;
+static lv_display_t  * disp1;
+static lv_obj_t * scr1;
+static lv_obj_t * list1;
+lv_obj_t * window;
 static char *text = "Hello";
 
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static void btn_event_cb(lv_event_t * e);
-static void btn_event_cb1(lv_event_t * e);
-static void btn_event_cb2(lv_event_t * e);
-static void main_screen();
-static void second_screen();
-static void textarea_event_handler(lv_event_t * e);
-static void textarea_event_handler1(lv_event_t * e);
+static void main_screen(void);
+static void second_screen(void);
+static void sidebar_list(void);
+static void home_list(void);
+static void browse_list(void);
+static void search_list(void);
+static void podcast_list(void);
+static void playlist_list(void);
+static void albums_list(void);
+static void artists_list(void);
+static void event_handler(lv_event_t * e);
+static void event_handler_home(lv_event_t * e);
+static void event_handler_browse(lv_event_t * e);
+static void event_handler_search(lv_event_t * e);
+static void event_handler_playlist(lv_event_t * e);
+static void event_handler_podcast(lv_event_t * e);
+static void event_handler_artists(lv_event_t * e);
+static void event_handler_albums(lv_event_t * e);
 
 /**********************
  *   GLOBAL FUNCTIONS
@@ -84,22 +97,6 @@ int main(int argc, char **argv)
   lv_display_t * disp = hal_init(480, 272);
 
   main_screen();
-
-  // lv_demo_widgets();
-
-  /*lv_obj_t * label = lv_label_create(lv_screen_active());
-  lv_label_set_text(label, "Home Screen");
-  lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0x000000), LV_PART_MAIN);
-  lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
-
-  lv_obj_t * btn = lv_button_create(lv_screen_active());
-  lv_obj_align(btn, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_size(btn, 120, 50);
-  lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);
-
-  lv_obj_t * btn_label = lv_label_create(btn);
-  lv_label_set_text(btn_label, "Next Screen");
-  lv_obj_center(btn_label);*/
 
   while(1) {
     /* Periodically call the lv_task handler.
@@ -153,127 +150,192 @@ static lv_display_t * hal_init(int32_t w, int32_t h)
 
 /**** START MOVE TO AND FROM VS CODE PROJECT ****/
 
-static void btn_event_cb(lv_event_t * e)
-{
-  lv_event_code_t code = lv_event_get_code(e);
-  lv_obj_t * btn = lv_event_get_target(e);
-  lv_display_t * disp1 = lv_obj_get_display(btn);
-  if (code == LV_EVENT_CLICKED){
-    lv_obj_clean(scr1);
-    second_screen();
-  }
-  return;
-}
-
-static void btn_event_cb1(lv_event_t * e)
-{
-  lv_event_code_t code = lv_event_get_code(e);
-  if (code == LV_EVENT_CLICKED){
-    //text = lv_textarea_get_text(ta);
-    lv_strcpy(text, lv_textarea_get_text(ta));
-    lv_textarea_add_text(ta2, text);
-  }
-}
-
-static void btn_event_cb2(lv_event_t * e)
-{
-  lv_event_code_t code = lv_event_get_code(e);
-  lv_obj_t * btn = lv_event_get_target(e);
-  lv_display_t * disp1 = lv_obj_get_display(btn);
-  if (code == LV_EVENT_CLICKED){
-    lv_obj_clean(scr2);
-    main_screen();
-  }
-  return;
-}
-
-static void textarea_event_handler(lv_event_t * e)
-{
-    lv_obj_t * ta1 = lv_event_get_user_data(e);
-    lv_event_code_t code = lv_event_get_code(e);
-    if (code == LV_EVENT_READY){
-      lv_strcpy(text, lv_textarea_get_text(ta));
-      lv_textarea_add_text(ta2, text);
-      LV_LOG_USER("Enter was pressed. The current text is: %s", lv_textarea_get_text(ta));
-    }
-    LV_LOG_USER("Enter was pressed. The current text is: %s", lv_textarea_get_text(ta));
-}
-
-static void textarea_event_handler1(lv_event_t * e)
-{
-    //lv_obj_t * ta1 = lv_event_get_user_data(e);
-    //lv_event_code_t code = lv_event_get_code(e);
-    //LV_LOG_USER("Enter was pressed. The current text is: %s", lv_textarea_get_text(ta));
-}
-
 static void main_screen(void)
 {
   lv_screen_load(scr1);
+  //lv_obj_set_style_bg_color(lv_screen_active(),lv_color_hex(0x181818), LV_PART_MAIN);
+
   lv_obj_t * label = lv_label_create(lv_screen_active());
   lv_label_set_text(label, "Home Screen");
-  lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0x000000), LV_PART_MAIN);
+  lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0xffffff), LV_PART_MAIN);
   lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
 
-  lv_obj_t * btn = lv_button_create(lv_screen_active());
-  lv_obj_align(btn, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
-  lv_obj_set_size(btn, 25, 25);
-  lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);
-
-  lv_obj_t * btn1 = lv_button_create(lv_screen_active());
-  lv_obj_align(btn1, LV_ALIGN_CENTER, 0, 50);
-  lv_obj_set_size(btn1, 50, 25);
-  //lv_obj_add_event_cb(btn1, btn_event_cb1, LV_EVENT_ALL, NULL);
-
-  lv_obj_t * btn_label = lv_label_create(btn);
-  lv_label_set_text(btn_label, ">");
-  lv_obj_center(btn_label);
-  lv_obj_t * btn_label1 = lv_label_create(btn1);
-  lv_label_set_text(btn_label1, "Enter");
-  lv_obj_center(btn_label1);
-
-  ta = lv_textarea_create(lv_screen_active());
-  lv_obj_align(ta, LV_ALIGN_CENTER, 0, 0);
-  lv_textarea_set_one_line(ta, true);
-  lv_textarea_set_placeholder_text(ta, "Placeholder text");
-  // lv_textarea_add_text(ta, text);
-  lv_obj_add_event_cb(ta, textarea_event_handler, LV_EVENT_READY, ta);
-  lv_obj_add_state(ta, LV_STATE_FOCUSED); /*To be sure the cursor is visible*/
-
-  ta2 = lv_textarea_create(lv_screen_active());
-  lv_obj_align(ta2, LV_ALIGN_CENTER, 0, -100);
-  lv_textarea_set_one_line(ta2, true);
+  sidebar_list();
+  home_list();
+  // podcast_list();
+  // playlist_list();
 
   return;
 }
 
-static void second_screen(void)
+static void sidebar_list(void)
 {
-  scr2 = lv_obj_create(NULL);
-  lv_screen_load(scr2);
+    /*Create a list*/
+    static lv_style_t style;
+    lv_style_init(&style);
+    lv_style_set_radius(&style, 0);
 
-  lv_obj_t * label = lv_label_create(lv_screen_active());
-  lv_label_set_text(label, "New Screen");
-  lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0x000000), LV_PART_MAIN);
-  lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
+    list1 = lv_list_create(lv_screen_active());
+    lv_obj_add_style(list1, &style, LV_STATE_DEFAULT);
+    lv_obj_set_size(list1, lv_pct(20), monitor_ver_res);
+    lv_obj_align(list1,LV_ALIGN_LEFT_MID, 0, 0);
 
-  lv_obj_t * btn = lv_button_create(lv_screen_active());
-  lv_obj_align(btn, LV_ALIGN_BOTTOM_LEFT, 0, 0);
-  lv_obj_set_size(btn, 25, 25);
-  lv_obj_add_event_cb(btn, btn_event_cb2, LV_EVENT_ALL, NULL);
+    /*Add buttons to the list*/
+    lv_obj_t * btn, * btn_playlist, * btn_podcast;
+    btn = lv_list_add_button(list1, LV_SYMBOL_HOME, "Home");
+    lv_obj_add_event_cb(btn, event_handler_home, LV_EVENT_ALL, NULL);
 
-  lv_obj_t * btn_label = lv_label_create(btn);
-  lv_label_set_text(btn_label, "<");
-  lv_obj_center(btn_label);
+    btn = lv_list_add_button(list1, LV_SYMBOL_EYE_OPEN, "Search");
+    lv_obj_add_event_cb(btn, event_handler_search, LV_EVENT_ALL, NULL);
 
-  lv_obj_t * ta1 = lv_textarea_create(lv_screen_active());
-  lv_obj_align(ta1, LV_ALIGN_CENTER, 0, 0);
-  lv_textarea_set_one_line(ta1, true);
-  //lv_textarea_set_placeholder_text(ta1, "Placeholder text");
-  lv_textarea_add_text(ta1, text);
-  lv_obj_add_event_cb(ta1, textarea_event_handler1, LV_EVENT_READY, ta1);
-  lv_obj_add_state(ta1, LV_STATE_FOCUSED); /*To be sure the cursor is visible*/
+    btn = lv_list_add_button(list1, LV_SYMBOL_DIRECTORY, "Browse");
+    lv_obj_add_event_cb(btn, event_handler_browse, LV_EVENT_ALL, NULL);
 
-  return;
+    lv_list_add_text(list1, "User");
+    btn = lv_list_add_button(list1, LV_SYMBOL_LIST, "Playlists");
+    lv_obj_add_event_cb(btn, event_handler_playlist, LV_EVENT_ALL, NULL);
+
+    btn = lv_list_add_button(list1, LV_SYMBOL_LIST, "Podcasts");
+    lv_obj_add_event_cb(btn, event_handler_podcast, LV_EVENT_ALL, NULL);
+
+    btn = lv_list_add_button(list1, LV_SYMBOL_LIST, "Artists");
+    lv_obj_add_event_cb(btn, event_handler_artists, LV_EVENT_ALL, NULL);
+
+    btn = lv_list_add_button(list1, LV_SYMBOL_LIST, "Albums");
+    lv_obj_add_event_cb(btn, event_handler_albums, LV_EVENT_ALL, NULL);
+}
+
+/* Sidebar List Button Event Handlers */
+static void event_handler_home(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * obj = lv_event_get_target(e);
+  if(code == LV_EVENT_CLICKED) {
+    lv_obj_delete(window);
+    home_list();
+  }
+}
+static void event_handler_browse(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * obj = lv_event_get_target(e);
+  if(code == LV_EVENT_CLICKED) {
+    lv_obj_delete(window);
+    browse_list();
+  }
+}
+static void event_handler_search(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * obj = lv_event_get_target(e);
+  if(code == LV_EVENT_CLICKED) {
+    lv_obj_delete(window);
+    search_list();
+  }
+}
+
+static void event_handler_playlist(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * obj = lv_event_get_target(e);
+  if(code == LV_EVENT_CLICKED) {
+    lv_obj_delete(window);
+    playlist_list();
+  }
+}
+static void event_handler_podcast(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * obj = lv_event_get_target(e);
+  if(code == LV_EVENT_CLICKED) {
+    lv_obj_delete(window);
+    podcast_list();
+  }
+}
+static void event_handler_artists(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * obj = lv_event_get_target(e);
+  if(code == LV_EVENT_CLICKED) {
+    lv_obj_delete(window);
+    artists_list();
+  }
+}
+static void event_handler_albums(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * obj = lv_event_get_target(e);
+  if(code == LV_EVENT_CLICKED) {
+    lv_obj_delete(window);
+    albums_list();
+  }
+}
+
+/* Large Menus */
+static void home_list(void)
+{
+  window = lv_win_create(lv_screen_active());
+  lv_obj_set_size(window, lv_pct(80), monitor_ver_res);
+  lv_obj_align(window,LV_ALIGN_RIGHT_MID, 0, 0);
+  lv_win_add_title(window, "Home");
+
+  static lv_style_t style_btn;
+  lv_style_init(&style_btn);
+  lv_style_set_bg_color(&style_btn, lv_color_hex(0x115588));
+  lv_style_set_bg_opa(&style_btn, LV_OPA_50);
+  lv_style_set_border_width(&style_btn, 2);
+  lv_style_set_border_color(&style_btn, lv_color_black());
+
+  lv_obj_t * cont = lv_win_get_content(window);
+
+  lv_obj_t * btn;
+  btn = lv_btn_create(cont);
+  lv_obj_add_style(btn, &style_btn, 0);
+  lv_obj_center(btn);
+  //lv_obj_set_align(btn, LV_ALIGN_TOP_MID);
+
+}
+static void browse_list(void)
+{
+  window = lv_win_create(lv_screen_active());
+ lv_obj_set_size(window, lv_pct(80), monitor_ver_res);
+  lv_obj_align(window,LV_ALIGN_RIGHT_MID, 0, 0);
+  lv_win_add_title(window, "Browse");
+}
+static void search_list(void)
+{
+  window = lv_win_create(lv_screen_active());
+  lv_obj_set_size(window, lv_pct(80), monitor_ver_res);
+  lv_obj_align(window,LV_ALIGN_RIGHT_MID, 0, 0);
+  lv_win_add_title(window, "Search");
+}
+static void podcast_list(void)
+{
+  window = lv_win_create(lv_screen_active());
+  lv_obj_set_size(window, lv_pct(80), monitor_ver_res);
+  lv_obj_align(window,LV_ALIGN_RIGHT_MID, 0, 0);
+  lv_win_add_title(window, "Podcasts");
+}
+static void playlist_list(void)
+{
+  window = lv_win_create(lv_screen_active());
+  lv_obj_set_size(window, lv_pct(80), monitor_ver_res);
+  lv_obj_align(window,LV_ALIGN_RIGHT_MID, 0, 0);
+  lv_win_add_title(window, "Playlists");
+}
+static void artists_list(void)
+{
+  window = lv_win_create(lv_screen_active());
+  lv_obj_set_size(window, lv_pct(80), monitor_ver_res);
+  lv_obj_align(window,LV_ALIGN_RIGHT_MID, 0, 0);
+  lv_win_add_title(window, "Artists");
+}
+static void albums_list(void)
+{
+  window = lv_win_create(lv_screen_active());
+  lv_obj_set_size(window, lv_pct(80), monitor_ver_res);
+  lv_obj_align(window,LV_ALIGN_RIGHT_MID, 0, 0);
+  lv_win_add_title(window, "Albums");
 }
 
 /**** END MOVE TO AND FROM VS CODE PROJECT ****/
