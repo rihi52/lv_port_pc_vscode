@@ -68,7 +68,6 @@ static lv_obj_t * list_playlist;
 static lv_obj_t * list_artists;
 static lv_obj_t * list_albums;
 lv_obj_t * window;
-static char *text = "Hello";
 
 /**********************
  *  STATIC PROTOTYPES
@@ -435,9 +434,6 @@ static void event_handler_choose_artist(lv_event_t * e)
   lv_obj_t * obj = lv_event_get_target(e);
   LV_UNUSED(obj);
 }
-
-4,242.10
-
 
 /* Albums */
 static void window_albums(void)
