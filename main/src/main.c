@@ -32,7 +32,7 @@ static lv_display_t * hal_init(int32_t w, int32_t h);
 /**********************
  *  STATIC VARIABLES
  **********************/
-const char *playlist_name[] = {"Workout", "Relax", "Study", "Sleep", "Driving", "Party"};
+const char *playlist_name[] = {"Workout", "Relax", "Study", "Sleep", "Driving", "Party"}; /* need to have as linked list of some kind for user modification */
 
 /**********************
  *      MACROS
@@ -373,7 +373,7 @@ static void playlist_list(void)
   /*Add buttons to the list*/
   lv_obj_t * btn, * btn_playlist, * btn_podcast;
 
-  int n = 6;
+  int n = 6; /* Update if more playlists are added to playlist_names[]  -  need to have as linked list of some kind for user modification*/
   for (int i = 0; i < n; i++){
     btn = lv_list_add_button(list2, LV_SYMBOL_LIST, playlist_name[i]);
     lv_obj_add_event_cb(btn, event_handler_choose_playlist, LV_EVENT_ALL, NULL);
