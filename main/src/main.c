@@ -33,6 +33,13 @@ static lv_display_t * hal_init(int32_t w, int32_t h);
  *  STATIC VARIABLES
  **********************/
 const char *playlist_name[] = {"Workout", "Relax", "Study", "Sleep", "Driving", "Party"}; /* need to have as linked list of some kind for user modification */
+int number_playlists = 6;  /* Update if more playlists are added to playlist_names[]  -  need to have as linked list of some kind for user modification*/
+
+const char *artist_name[] = {"The Beatles", "Chevelle", "Catholic Lofi", "Nickelback", "Underoath", "Our Last Night"}; /* need to have as linked list of some kind for user modification */
+int number_artists = 6; /* Make Variable and related to linked list */
+
+const char *album_name[] = {"Abbey Road", "Revolver", "This Sacred Heart", "Silver Side Up", "They're Only Chasing Safety", "The Ghosts Among Us", "Vena Sera"}; /* need to have as linked list of some kind for user modification */
+int number_albums = 7; /* Make Variable and related to linked list */
 
 /**********************
  *      MACROS
@@ -57,7 +64,9 @@ int monitor_hor_res = 800, monitor_ver_res = 480;
 static lv_display_t  * disp1;
 static lv_obj_t * scr1;
 static lv_obj_t * list1;
-static lv_obj_t * list2;
+static lv_obj_t * list_playlist;
+static lv_obj_t * list_artists;
+static lv_obj_t * list_albums;
 lv_obj_t * window;
 static char *text = "Hello";
 
@@ -71,18 +80,22 @@ static void home_list(void);
 static void browse_list(void);
 static void search_list(void);
 static void podcast_list(void);
-static void playlist_list(void);
-static void albums_list(void);
-static void artists_list(void);
+static void window_playlist(void);
+static void window_albums(void);
+static void window_artists(void);
+
 static void event_handler(lv_event_t * e);
 static void event_handler_home(lv_event_t * e);
 static void event_handler_browse(lv_event_t * e);
 static void event_handler_search(lv_event_t * e);
-static void event_handler_playlist(lv_event_t * e);
-static void event_handler_choose_playlist(lv_event_t * e);
+static void event_handler_playlist(lv_event_t * e);;
 static void event_handler_podcast(lv_event_t * e);
 static void event_handler_artists(lv_event_t * e);
 static void event_handler_albums(lv_event_t * e);
+
+static void event_handler_choose_playlist(lv_event_t * e);
+static void event_handler_choose_artist(lv_event_t * e);
+static void event_handler_choose_album(lv_event_t * e);
 
 /**********************
  *   GLOBAL FUNCTIONS
@@ -166,7 +179,7 @@ static void main_screen(void)
   sidebar_list();
   home_list();
   // podcast_list();
-  // playlist_list();
+  // window_playlist();
 
   return;
 }
@@ -243,7 +256,7 @@ static void event_handler_playlist(lv_event_t * e)
   lv_obj_t * obj = lv_event_get_target(e);
   if(code == LV_EVENT_CLICKED) {
     lv_obj_delete(window);
-    playlist_list();
+    window_playlist();
   }
 }
 static void event_handler_podcast(lv_event_t * e)
@@ -261,7 +274,7 @@ static void event_handler_artists(lv_event_t * e)
   lv_obj_t * obj = lv_event_get_target(e);
   if(code == LV_EVENT_CLICKED) {
     lv_obj_delete(window);
-    artists_list();
+    window_artists();
   }
 }
 static void event_handler_albums(lv_event_t * e)
@@ -270,7 +283,7 @@ static void event_handler_albums(lv_event_t * e)
   lv_obj_t * obj = lv_event_get_target(e);
   if(code == LV_EVENT_CLICKED) {
     lv_obj_delete(window);
-    albums_list();
+    window_albums();
   }
 }
 
@@ -351,7 +364,9 @@ static void podcast_list(void)
   lv_obj_align(window,LV_ALIGN_RIGHT_MID, 0, 0);
   lv_win_add_title(window, "Podcasts");
 }
-static void playlist_list(void)
+
+/* Playlists */
+static void window_playlist(void)
 {
   window = lv_win_create(lv_screen_active());
   lv_obj_set_size(window, lv_pct(80), monitor_ver_res);
@@ -360,22 +375,20 @@ static void playlist_list(void)
 
   lv_obj_t * cont = lv_win_get_content(window);
 
-  /*Create a list*/
   static lv_style_t style;
   lv_style_init(&style);
   lv_style_set_radius(&style, 0);
 
-  list2 = lv_list_create(cont);
-  lv_obj_add_style(list2, &style, LV_STATE_DEFAULT);
-  lv_obj_set_size(list2, lv_pct(100), lv_pct(100));
-  lv_obj_align(list2,LV_ALIGN_BOTTOM_MID, 0, 0);
+  list_playlist = lv_list_create(cont);
+  lv_obj_add_style(list_playlist, &style, LV_STATE_DEFAULT);
+  lv_obj_set_size(list_playlist, lv_pct(100), lv_pct(100));
+  lv_obj_align(list_playlist,LV_ALIGN_BOTTOM_MID, 0, 0);
 
   /*Add buttons to the list*/
   lv_obj_t * btn, * btn_playlist, * btn_podcast;
 
-  int n = 6; /* Update if more playlists are added to playlist_names[]  -  need to have as linked list of some kind for user modification*/
-  for (int i = 0; i < n; i++){
-    btn = lv_list_add_button(list2, LV_SYMBOL_LIST, playlist_name[i]);
+  for (int i = 0; i < number_playlists; i++){
+    btn = lv_list_add_button(list_playlist, LV_SYMBOL_LIST, playlist_name[i]);
     lv_obj_add_event_cb(btn, event_handler_choose_playlist, LV_EVENT_ALL, NULL);
   }
 
@@ -387,19 +400,78 @@ static void event_handler_choose_playlist(lv_event_t * e)
   lv_obj_t * obj = lv_event_get_target(e);
   LV_UNUSED(obj);
 }
-static void artists_list(void)
+
+/* Artists */
+static void window_artists(void)
 {
   window = lv_win_create(lv_screen_active());
   lv_obj_set_size(window, lv_pct(80), monitor_ver_res);
   lv_obj_align(window,LV_ALIGN_RIGHT_MID, 0, 0);
   lv_win_add_title(window, "Artists");
+
+  lv_obj_t * cont = lv_win_get_content(window);
+
+  static lv_style_t style;
+  lv_style_init(&style);
+  lv_style_set_radius(&style, 0);
+
+  list_artists = lv_list_create(cont);
+  lv_obj_add_style(list_artists, &style, LV_STATE_DEFAULT);
+  lv_obj_set_size(list_artists, lv_pct(100), lv_pct(100));
+  lv_obj_align(list_artists,LV_ALIGN_BOTTOM_MID, 0, 0);
+
+  /*Add buttons to the list*/
+  lv_obj_t * btn, * btn_playlist, * btn_podcast;
+
+  for (int i = 0; i < number_artists; i++){
+    btn = lv_list_add_button(list_artists, LV_SYMBOL_DRIVE, artist_name[i]);
+    lv_obj_add_event_cb(btn, event_handler_choose_artist, LV_EVENT_ALL, NULL);
+  }
 }
-static void albums_list(void)
+/* Need to go to artist still */
+static void event_handler_choose_artist(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * obj = lv_event_get_target(e);
+  LV_UNUSED(obj);
+}
+
+4,242.10
+
+
+/* Albums */
+static void window_albums(void)
 {
   window = lv_win_create(lv_screen_active());
   lv_obj_set_size(window, lv_pct(80), monitor_ver_res);
   lv_obj_align(window,LV_ALIGN_RIGHT_MID, 0, 0);
   lv_win_add_title(window, "Albums");
+
+  lv_obj_t * cont = lv_win_get_content(window);
+
+  static lv_style_t style;
+  lv_style_init(&style);
+  lv_style_set_radius(&style, 0);
+
+  list_albums = lv_list_create(cont);
+  lv_obj_add_style(list_albums, &style, LV_STATE_DEFAULT);
+  lv_obj_set_size(list_albums, lv_pct(100), lv_pct(100));
+  lv_obj_align(list_albums,LV_ALIGN_BOTTOM_MID, 0, 0);
+
+  /*Add buttons to the list*/
+  lv_obj_t * btn, * btn_playlist, * btn_podcast;
+
+  for (int i = 0; i < number_albums; i++){
+    btn = lv_list_add_button(list_albums, LV_SYMBOL_IMAGE, album_name[i]);
+    lv_obj_add_event_cb(btn, event_handler_choose_album, LV_EVENT_ALL, NULL);
+  }
+}
+/* Need to go to album still */
+static void event_handler_choose_album(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * obj = lv_event_get_target(e);
+  LV_UNUSED(obj);
 }
 
 /**** END MOVE TO AND FROM VS CODE PROJECT ****/
