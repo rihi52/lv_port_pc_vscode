@@ -94,7 +94,7 @@ int main(int argc, char **argv)
   lv_init();
 
   /*Initialize the HAL (display, input devices, tick) for LVGL*/
-  lv_display_t * disp = hal_init(480, 272);
+  lv_display_t * disp = hal_init(monitor_hor_res, monitor_ver_res);
 
   main_screen();
 
@@ -291,14 +291,45 @@ static void home_list(void)
   lv_obj_t * btn;
   btn = lv_btn_create(cont);
   lv_obj_add_style(btn, &style_btn, 0);
-  lv_obj_center(btn);
-  //lv_obj_set_align(btn, LV_ALIGN_TOP_MID);
+  lv_obj_align(btn,LV_ALIGN_TOP_LEFT, 0, 0);
+  lv_obj_set_size(btn, 150, 150);
+
+  lv_obj_t * label = lv_label_create(btn);
+  lv_obj_t * label1 = lv_label_create(btn);
+  lv_label_set_text(label, "New Releases\n\n");
+  lv_label_set_text(label1, LV_SYMBOL_AUDIO);
+  lv_obj_center(label);
+  lv_obj_align(label1, LV_ALIGN_CENTER, 0, 20);
+
+  btn = lv_btn_create(cont);
+  lv_obj_add_style(btn, &style_btn, 0);
+  lv_obj_align(btn,LV_ALIGN_TOP_MID, 0, 0);
+  lv_obj_set_size(btn, 150, 150);
+
+  label = lv_label_create(btn);
+  label1 = lv_label_create(btn);
+  lv_label_set_text(label, "Recently Played\n\n");
+  lv_label_set_text(label1, LV_SYMBOL_AUDIO);
+  lv_obj_center(label);
+  lv_obj_align(label1, LV_ALIGN_CENTER, 0, 20);
+
+  btn = lv_btn_create(cont);
+  lv_obj_add_style(btn, &style_btn, 0);
+  lv_obj_align(btn,LV_ALIGN_TOP_RIGHT, 0, 0);
+  lv_obj_set_size(btn, 150, 150);
+
+  label = lv_label_create(btn);
+  label1 = lv_label_create(btn);
+  lv_label_set_text(label, "Your Updates\n\n");
+  lv_label_set_text(label1, LV_SYMBOL_AUDIO);
+  lv_obj_center(label);
+  lv_obj_align(label1, LV_ALIGN_CENTER, 0, 20);
 
 }
 static void browse_list(void)
 {
   window = lv_win_create(lv_screen_active());
- lv_obj_set_size(window, lv_pct(80), monitor_ver_res);
+  lv_obj_set_size(window, lv_pct(80), monitor_ver_res);
   lv_obj_align(window,LV_ALIGN_RIGHT_MID, 0, 0);
   lv_win_add_title(window, "Browse");
 }
