@@ -374,13 +374,28 @@ static void window_playlist(void)
 
   lv_obj_t * cont = lv_win_get_content(window);
 
+  lv_obj_t * new_btn = lv_btn_create(cont);
+  lv_obj_set_size(new_btn, 120, lv_pct(10));
+  lv_obj_align(new_btn, LV_ALIGN_TOP_LEFT, 0, 0);
+
+  lv_obj_t * del_btn = lv_btn_create(cont);
+  lv_obj_set_size(del_btn, 120, lv_pct(10));
+  lv_obj_align(del_btn, LV_ALIGN_TOP_RIGHT, 0, 0);
+
+  lv_obj_t * new_label = lv_label_create(new_btn);
+  lv_obj_t * del_label = lv_label_create(del_btn);
+  lv_label_set_text(new_label, "New Playlist\n\n");
+  lv_label_set_text(del_label, "Delete Playlist");
+  lv_obj_center(new_label);
+  lv_obj_center(del_label);
+
   static lv_style_t style;
   lv_style_init(&style);
   lv_style_set_radius(&style, 0);
 
   list_playlist = lv_list_create(cont);
   lv_obj_add_style(list_playlist, &style, LV_STATE_DEFAULT);
-  lv_obj_set_size(list_playlist, lv_pct(100), lv_pct(100));
+  lv_obj_set_size(list_playlist, lv_pct(100), lv_pct(85));
   lv_obj_align(list_playlist,LV_ALIGN_BOTTOM_MID, 0, 0);
 
   /*Add buttons to the list*/
