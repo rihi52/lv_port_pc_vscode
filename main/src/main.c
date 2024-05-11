@@ -32,7 +32,7 @@ static lv_display_t * hal_init(int32_t w, int32_t h);
 /**********************
  *  STATIC VARIABLES
  **********************/
-const char *playlist_name[] = {"Workout", "Relax", "Study", "Sleep", "Driving", "Party"}; /* need to have as linked list of some kind for user modification */
+const char *playlist_names[] = {"Workout", "Relax", "Study", "Sleep", "Driving", "Party"}; /* need to have as linked list of some kind for user modification */
 int number_playlists = 6;  /* Update if more playlists are added to playlist_names[]  -  need to have as linked list of some kind for user modification*/
 
 const char *artist_name[] = {"The Beatles", "Chevelle", "Catholic Lofi", "Nickelback", "Underoath", "Our Last Night"}; /* need to have as linked list of some kind for user modification */
@@ -68,6 +68,9 @@ static lv_obj_t * list_playlist;
 static lv_obj_t * list_artists;
 static lv_obj_t * list_albums;
 lv_obj_t * window;
+char * new_playlist_name;
+lv_obj_t * playlist_name_msg;
+lv_obj_t * new_playlist_name_textarea;
 
 /**********************
  *  STATIC PROTOTYPES
@@ -91,6 +94,11 @@ static void event_handler_playlist(lv_event_t * e);;
 static void event_handler_podcast(lv_event_t * e);
 static void event_handler_artists(lv_event_t * e);
 static void event_handler_albums(lv_event_t * e);
+
+static void event_handler_new_playlist(lv_event_t * e);
+static void event_handler_create_playlist(lv_event_t * e);
+static void name_new_playlist(void);
+static void event_handler_del_playlist(lv_event_t * e);
 
 static void event_handler_choose_playlist(lv_event_t * e);
 static void event_handler_choose_artist(lv_event_t * e);
@@ -377,10 +385,12 @@ static void window_playlist(void)
   lv_obj_t * new_btn = lv_btn_create(cont);
   lv_obj_set_size(new_btn, 120, lv_pct(10));
   lv_obj_align(new_btn, LV_ALIGN_TOP_LEFT, 0, 0);
+  lv_obj_add_event_cb(new_btn, event_handler_new_playlist, LV_EVENT_ALL, NULL);
 
   lv_obj_t * del_btn = lv_btn_create(cont);
   lv_obj_set_size(del_btn, 120, lv_pct(10));
   lv_obj_align(del_btn, LV_ALIGN_TOP_RIGHT, 0, 0);
+  lv_obj_add_event_cb(del_btn, event_handler_del_playlist, LV_EVENT_ALL, NULL);
 
   lv_obj_t * new_label = lv_label_create(new_btn);
   lv_obj_t * del_label = lv_label_create(del_btn);
@@ -402,13 +412,60 @@ static void window_playlist(void)
   lv_obj_t * btn, * btn_playlist, * btn_podcast;
 
   for (int i = 0; i < number_playlists; i++){
-    btn = lv_list_add_button(list_playlist, LV_SYMBOL_LIST, playlist_name[i]);
+    btn = lv_list_add_button(list_playlist, LV_SYMBOL_LIST, playlist_names[i]);
     lv_obj_add_event_cb(btn, event_handler_choose_playlist, LV_EVENT_ALL, NULL);
   }
 
 }
 /* Need to go to playlist still */
 static void event_handler_choose_playlist(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * obj = lv_event_get_target(e);
+  LV_UNUSED(obj);
+}
+/* Code to add a playlist */
+static void event_handler_new_playlist(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * obj = lv_event_get_target(e);
+  if (code == LV_EVENT_CLICKED){
+    name_new_playlist();
+  }
+
+}
+static void name_new_playlist(void)
+{
+  playlist_name_msg = lv_msgbox_create(NULL);
+  lv_obj_set_size(playlist_name_msg, lv_pct(50), lv_pct(35));
+  lv_msgbox_add_title(playlist_name_msg, "New Playlist");
+  lv_msgbox_add_close_button(playlist_name_msg);
+
+  lv_obj_t * cont = lv_msgbox_get_content(playlist_name_msg);
+
+  lv_obj_t * new_playlist_name_textarea = lv_textarea_create(cont);
+  lv_textarea_set_password_mode(new_playlist_name_textarea, false);
+  lv_obj_set_size(new_playlist_name_textarea, lv_pct(100), lv_pct(20));
+  lv_textarea_set_one_line(new_playlist_name_textarea, true);
+
+  lv_obj_t * create_playlist_btn = lv_msgbox_add_footer_button(playlist_name_msg, "Create");
+  lv_obj_add_event_cb(create_playlist_btn, event_handler_create_playlist, LV_EVENT_ALL, NULL);
+  lv_obj_t * cancel_playlist_btn = lv_msgbox_add_footer_button(playlist_name_msg, "Cancel");
+  // lv_obj_add_event_cb(cancel_playlist_btn, event_handler_choose_playlist, LV_EVENT_ALL, NULL);
+}
+static void event_handler_create_playlist(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * obj = lv_event_get_target(e);
+  if (code == LV_EVENT_CLICKED){
+    lv_strcpy(new_playlist_name, lv_textarea_get_text(new_playlist_name_textarea));
+    lv_obj_del(playlist_name_msg);
+    lv_obj_t * btn;
+    btn = lv_list_add_button(list_playlist, LV_SYMBOL_LIST, new_playlist_name);
+  }
+}
+/* Code to delete a playlist */
+static void event_handler_del_playlist(lv_event_t * e)
 {
   lv_event_code_t code = lv_event_get_code(e);
   lv_obj_t * obj = lv_event_get_target(e);
