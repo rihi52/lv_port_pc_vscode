@@ -68,7 +68,7 @@ static lv_obj_t * list_playlist;
 static lv_obj_t * list_artists;
 static lv_obj_t * list_albums;
 lv_obj_t * window;
-char * new_playlist_name;
+// char * new_playlist_name;
 lv_obj_t * playlist_name_msg;
 lv_obj_t * new_playlist_name_textarea;
 
@@ -394,7 +394,7 @@ static void window_playlist(void)
 
   lv_obj_t * new_label = lv_label_create(new_btn);
   lv_obj_t * del_label = lv_label_create(del_btn);
-  lv_label_set_text(new_label, "New Playlist\n\n");
+  lv_label_set_text(new_label, "New Playlist");
   lv_label_set_text(del_label, "Delete Playlist");
   lv_obj_center(new_label);
   lv_obj_center(del_label);
@@ -443,12 +443,14 @@ static void name_new_playlist(void)
 
   lv_obj_t * cont = lv_msgbox_get_content(playlist_name_msg);
 
-  lv_obj_t * new_playlist_name_textarea = lv_textarea_create(cont);
+  new_playlist_name_textarea = lv_textarea_create(cont);
   lv_textarea_set_password_mode(new_playlist_name_textarea, false);
   lv_obj_set_size(new_playlist_name_textarea, lv_pct(100), lv_pct(20));
   lv_textarea_set_one_line(new_playlist_name_textarea, true);
 
   lv_obj_t * create_playlist_btn = lv_msgbox_add_footer_button(playlist_name_msg, "Create");
+  lv_obj_align(create_playlist_btn, LV_ALIGN_BOTTOM_LEFT, -20, 20);
+  //lv_obj_set_user_data(create_playlist_btn, (void *)new_playlist_name_textarea);
   lv_obj_add_event_cb(create_playlist_btn, event_handler_create_playlist, LV_EVENT_ALL, NULL);
   lv_obj_t * cancel_playlist_btn = lv_msgbox_add_footer_button(playlist_name_msg, "Cancel");
   // lv_obj_add_event_cb(cancel_playlist_btn, event_handler_choose_playlist, LV_EVENT_ALL, NULL);
@@ -458,8 +460,9 @@ static void event_handler_create_playlist(lv_event_t * e)
   lv_event_code_t code = lv_event_get_code(e);
   lv_obj_t * obj = lv_event_get_target(e);
   if (code == LV_EVENT_CLICKED){
+    char * new_playlist_name;// = lv_textarea_get_text(new_playlist_name_textarea);
     lv_strcpy(new_playlist_name, lv_textarea_get_text(new_playlist_name_textarea));
-    lv_obj_del(playlist_name_msg);
+    lv_msgbox_close(playlist_name_msg);
     lv_obj_t * btn;
     btn = lv_list_add_button(list_playlist, LV_SYMBOL_LIST, new_playlist_name);
   }
