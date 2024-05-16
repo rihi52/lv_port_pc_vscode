@@ -23,6 +23,40 @@
 /**********************
  *      TYPEDEFS
  **********************/
+/*typedef struct playlist_t{
+  char *name;
+  struct playlist_t * next;
+}playlist_t;
+
+playlist_t * playlist;
+
+typedef struct node_list_t {
+    struct playlist_t * head;
+    struct playlist_t * tail;  // optional
+    int size;
+} node_list_t;
+
+node_list_t tracker = {NULL, NULL, 0};
+
+static int create_playlist(void)
+{
+  tracker.head = playlist;
+  playlist->name = "";
+  playlist->next = NULL;
+
+  if (tracker.size == MAX_PLAYLISTS){
+    return 1;
+  }
+  playlist_t * temp = playlist;
+  for (int i = 0; i < MAX_PLAYLISTS; i++){
+    playlist_t * new_playlist = NULL;
+    temp = temp->next;
+    temp->next = new_playlist;
+    tracker.tail = new_playlist;
+    tracker.size++;
+  }
+  return 0;
+}*/
 
 /**********************
  *  STATIC PROTOTYPES
@@ -67,10 +101,16 @@ static lv_obj_t * list1;
 static lv_obj_t * list_playlist;
 static lv_obj_t * list_artists;
 static lv_obj_t * list_albums;
-lv_obj_t * window;
-// char * new_playlist_name;
-lv_obj_t * playlist_name_msg;
-lv_obj_t * new_playlist_name_textarea;
+static lv_obj_t * window;
+//char * new_playlist_name;
+static lv_obj_t * playlist_name_msg;
+
+static lv_timer_t  * stop_start_anim_timer;
+static lv_timer_t  * sec_counter_timer;
+lv_obj_t * time_obj;
+static uint32_t time_act = 0;
+lv_obj_t * slider;
+lv_obj_t * play_btn;
 
 /**********************
  *  STATIC PROTOTYPES
@@ -97,12 +137,17 @@ static void event_handler_albums(lv_event_t * e);
 
 static void event_handler_new_playlist(lv_event_t * e);
 static void event_handler_create_playlist(lv_event_t * e);
+static void event_handler_cancel_playlist(lv_event_t * e);
 static void name_new_playlist(void);
 static void event_handler_del_playlist(lv_event_t * e);
 
 static void event_handler_choose_playlist(lv_event_t * e);
 static void event_handler_choose_artist(lv_event_t * e);
 static void event_handler_choose_album(lv_event_t * e);
+
+static void timer_cb(lv_timer_t * t);
+static void play_event_click_cb(lv_event_t * e);
+static void del_counter_timer_cb(lv_event_t * e);
 
 /**********************
  *   GLOBAL FUNCTIONS
@@ -349,7 +394,31 @@ static void home_list(void)
   lv_obj_center(label);
   lv_obj_align(label1, LV_ALIGN_CENTER, 0, 20);
 
+  sec_counter_timer = lv_timer_create(timer_cb, 1000, NULL);
+  lv_timer_pause(sec_counter_timer);
+
+  play_btn = lv_btn_create(cont);
+  lv_obj_align(play_btn, LV_ALIGN_BOTTOM_MID, 30, 0);
+  lv_obj_set_size(play_btn, 20, 15);
+  lv_obj_add_event_cb(play_btn, play_event_click_cb, LV_EVENT_CLICKED, NULL);
+
+  slider = lv_slider_create(cont);
+  lv_obj_align(slider, LV_ALIGN_BOTTOM_MID, 0, -20);
+  lv_obj_set_style_anim_duration(slider, 100, 0);
+  lv_obj_add_flag(slider, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_add_event_cb(slider, del_counter_timer_cb, LV_EVENT_DELETE, NULL);
+
+  time_obj = lv_label_create(cont);
+  //lv_obj_set_style_text_font(time_obj, font_small, 0);
+  lv_obj_set_style_text_color(time_obj, lv_color_hex(0x8a86b8), 0);
+  lv_label_set_text(time_obj, "0:00");
+  lv_obj_align(time_obj, LV_ALIGN_BOTTOM_MID, 0, 0);
+  lv_obj_add_event_cb(time_obj, del_counter_timer_cb, LV_EVENT_DELETE, NULL);
+
+  //lv_slider_set_value(slider, 0, LV_ANIM_ON);
+
 }
+
 static void browse_list(void)
 {
   window = lv_win_create(lv_screen_active());
@@ -357,6 +426,7 @@ static void browse_list(void)
   lv_obj_align(window,LV_ALIGN_RIGHT_MID, 0, 0);
   lv_win_add_title(window, "Browse");
 }
+
 static void search_list(void)
 {
   window = lv_win_create(lv_screen_active());
@@ -364,6 +434,7 @@ static void search_list(void)
   lv_obj_align(window,LV_ALIGN_RIGHT_MID, 0, 0);
   lv_win_add_title(window, "Search");
 }
+
 static void podcast_list(void)
 {
   window = lv_win_create(lv_screen_active());
@@ -434,6 +505,7 @@ static void event_handler_new_playlist(lv_event_t * e)
   }
 
 }
+
 static void name_new_playlist(void)
 {
   playlist_name_msg = lv_msgbox_create(NULL);
@@ -443,31 +515,42 @@ static void name_new_playlist(void)
 
   lv_obj_t * cont = lv_msgbox_get_content(playlist_name_msg);
 
-  new_playlist_name_textarea = lv_textarea_create(cont);
+  lv_obj_t * new_playlist_name_textarea = lv_textarea_create(cont);
   lv_textarea_set_password_mode(new_playlist_name_textarea, false);
   lv_obj_set_size(new_playlist_name_textarea, lv_pct(100), lv_pct(20));
   lv_textarea_set_one_line(new_playlist_name_textarea, true);
 
   lv_obj_t * create_playlist_btn = lv_msgbox_add_footer_button(playlist_name_msg, "Create");
   lv_obj_align(create_playlist_btn, LV_ALIGN_BOTTOM_LEFT, -20, 20);
-  //lv_obj_set_user_data(create_playlist_btn, (void *)new_playlist_name_textarea);
-  lv_obj_add_event_cb(create_playlist_btn, event_handler_create_playlist, LV_EVENT_ALL, NULL);
+  lv_obj_add_event_cb(create_playlist_btn, event_handler_create_playlist, LV_EVENT_ALL, new_playlist_name_textarea);
+
   lv_obj_t * cancel_playlist_btn = lv_msgbox_add_footer_button(playlist_name_msg, "Cancel");
-  // lv_obj_add_event_cb(cancel_playlist_btn, event_handler_choose_playlist, LV_EVENT_ALL, NULL);
+  lv_obj_add_event_cb(cancel_playlist_btn, event_handler_cancel_playlist, LV_EVENT_ALL, NULL);
 }
+
 static void event_handler_create_playlist(lv_event_t * e)
 {
   lv_event_code_t code = lv_event_get_code(e);
   lv_obj_t * obj = lv_event_get_target(e);
+  lv_obj_t * ta = lv_event_get_user_data(e);
   if (code == LV_EVENT_CLICKED){
-    char * new_playlist_name;// = lv_textarea_get_text(new_playlist_name_textarea);
-    lv_strcpy(new_playlist_name, lv_textarea_get_text(new_playlist_name_textarea));
-    lv_msgbox_close(playlist_name_msg);
+    const char * new_playlist_name = lv_textarea_get_text(ta);
     lv_obj_t * btn;
     btn = lv_list_add_button(list_playlist, LV_SYMBOL_LIST, new_playlist_name);
+    lv_msgbox_close(playlist_name_msg);
   }
 }
-/* Code to delete a playlist */
+
+static void event_handler_cancel_playlist(lv_event_t * e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t * obj = lv_event_get_target(e);
+  if (code == LV_EVENT_CLICKED){
+    lv_msgbox_close(playlist_name_msg);
+  }
+}
+
+/* Code to delete a playlist - Needs done, probably requires linked list or something similar I don't know about*/
 static void event_handler_del_playlist(lv_event_t * e)
 {
   lv_event_code_t code = lv_event_get_code(e);
@@ -543,6 +626,34 @@ static void event_handler_choose_album(lv_event_t * e)
   lv_event_code_t code = lv_event_get_code(e);
   lv_obj_t * obj = lv_event_get_target(e);
   LV_UNUSED(obj);
+}
+
+static void timer_cb(lv_timer_t * t)
+{
+    LV_UNUSED(t);
+    time_act++;
+    lv_label_set_text_fmt(time_obj, "%"LV_PRIu32":%02"LV_PRIu32, time_act / 60, time_act % 60);
+    lv_slider_set_value(slider, time_act, LV_ANIM_ON);
+}
+
+static void del_counter_timer_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if(code == LV_EVENT_DELETE && sec_counter_timer) {
+        lv_timer_delete(sec_counter_timer);
+        sec_counter_timer = NULL;
+    }
+}
+
+static void play_event_click_cb(lv_event_t * e)
+{
+  lv_obj_t * obj = lv_event_get_target(e);
+  /*if(lv_obj_has_state(obj, LV_STATE_CHECKED)) {
+      _lv_demo_music_resume();
+  }
+  else {
+      _lv_demo_music_pause();
+  }*/
 }
 
 /**** END MOVE TO AND FROM VS CODE PROJECT ****/
