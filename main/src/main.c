@@ -145,6 +145,8 @@ static void event_handler_choose_playlist(lv_event_t * e);
 static void event_handler_choose_artist(lv_event_t * e);
 static void event_handler_choose_album(lv_event_t * e);
 
+void func(void * var, lv_anim_var_t value);
+
 static void timer_cb(lv_timer_t * t);
 static void play_event_click_cb(lv_event_t * e);
 static void del_counter_timer_cb(lv_event_t * e);
@@ -643,6 +645,27 @@ static void del_counter_timer_cb(lv_event_t * e)
         lv_timer_delete(sec_counter_timer);
         sec_counter_timer = NULL;
     }
+}
+
+void func(void * var, lv_anim_var_t value)
+{
+  lv_anim_t a;
+  lv_anim_init(&a);
+
+  /* MANDATORY SETTINGS
+  *------------------*/
+
+  /*Set the "animator" function*/
+  lv_anim_set_exec_cb(&a, (lv_anim_exec_xcb_t) lv_obj_set_x);
+
+  /*Set target of the animation*/
+  lv_anim_set_var(&a, obj);
+
+  /*Length of the animation [ms]*/
+  lv_anim_set_duration(&a, duration);
+
+  /*Set start and end values. E.g. 0, 150*/
+  lv_anim_set_values(&a, start, end);
 }
 
 static void play_event_click_cb(lv_event_t * e)
