@@ -2,6 +2,14 @@
 
 I created this fork to practice programming UI's with LVGL. This repo is an incomplete music player UI.
 
+## My Screenshots
+
+![image](https://github.com/rihi52/lv_port_pc_vscode/blob/master/Assets/HomeScreen.PNG)
+
+![image](https://github.com/rihi52/lv_port_pc_vscode/blob/master/Assets/PlaylistScreen.PNG)
+
+![image](https://github.com/rihi52/lv_port_pc_vscode/blob/master/Assets/NewPlaylistScreen.PNG)
+
 # Simulator project for LVGL embedded GUI Library
 
 The [LVGL](https://github.com/lvgl/lvgl) is written mainly for microcontrollers and embedded systems, however you can run the library **on your PC** as well without any embedded hardware. The code written on PC can be simply copied when your are using an embedded system.
